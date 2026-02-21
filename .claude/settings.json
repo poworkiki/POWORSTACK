@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(pytest:*)",
+      "Bash(python:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Skill(*)",
+      "WebSearch"
+    ],
+    "deny": []
+  }
+}
