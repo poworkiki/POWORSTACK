@@ -9,26 +9,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Langue** : fr — tout code, commentaires et documentation en français.
 **Plateforme** : Windows 11 (shell bash via Git Bash)
 
-## Services et intégrations
+## Architecture
 
-Le stack repose sur plusieurs services interconnectés (voir `.env.example` pour les variables requises) :
+Projet de type **configuration-as-code** : pas de code source applicatif, mais la gestion centralisée d'un stack d'infrastructure IA/automatisation hébergé sur un serveur Coolify (IP `168.231.69.226`).
+
+### Services Coolify (projet POWOR_BUSINESS)
+
+| Service | Type | URL / Accès |
+|---------|------|-------------|
+| **poworbusiness_n8n** | n8n (principal) | `n8n.poworkiki.cloud` |
+| **KIKIN8N** | n8n (secondaire) | `kikin8n.poworkiki.cloud` |
+| **POWOR_SUPABASE** | Supabase self-hosted | via Kong (voir `.env`) |
+| **POWOR_APPSMITH** | Appsmith (low-code) | via sslip.io (voir `.env`) |
+| **odoo** | ERP (HMA) | `odoo.hmagestion.fr` |
+| **qdrant** | Base vectorielle | via sslip.io (voir `.env`) |
+| **powor-business-api** | Application | `api.poworkiki.cloud` |
+| **powor-dashboard** | Application | `dashboard.poworkiki.cloud` |
+
+### Services externes
 
 | Service | Rôle |
 |---------|------|
-| **n8n** | Orchestration de workflows et automatisations (2 instances) |
-| **Supabase** | Base de données PostgreSQL, Auth, Edge Functions |
+| **Supabase Cloud** | PostgreSQL, Auth, Edge Functions (instance cloud) |
 | **OpenRouter** | Routeur LLM (Gemini, Mistral, OpenAI) — provider principal |
-| **Qdrant** | Base vectorielle pour knowledge base |
-| **Odoo** | ERP / gestion (HMA) |
 | **Pennylane** | Comptabilité |
-| **Coolify** | Déploiement et hébergement des services |
 | **Firecrawl** | Scraping web |
-| **Playwright** | Tests navigateur et scraping |
-| **Context7** | Documentation à jour des librairies |
+
+### API Coolify
+
+- Base URL : `https://coolify.poworkiki.cloud/api/v1`
+- Auth : `Authorization: Bearer <COOLIFY_API_TOKEN>`
+- Endpoints utiles : `/resources`, `/services`, `/services/{uuid}`, `/services/{uuid}/start|stop|restart`, `/servers/{uuid}/domains`
+- Les logs ne sont disponibles via l'API que pour les **applications** (`/applications/{uuid}/logs`), pas pour les services
 
 ## MCP Servers (`.mcp.json`)
 
-Trois serveurs MCP configurés : `context7`, `playwright`, `supabase`.
+Trois serveurs MCP configurés : `context7` (docs librairies), `playwright` (navigateur), `supabase` (gestion BDD cloud).
 
 ## Commandes
 
@@ -39,6 +55,10 @@ Trois serveurs MCP configurés : `context7`, `playwright`, `supabase`.
 
 # Python sur Windows (encodage obligatoire)
 PYTHONIOENCODING=utf-8 python mon_script.py
+
+# API Coolify — pattern récurrent
+curl -s "https://coolify.poworkiki.cloud/api/v1/<endpoint>" \
+  -H "Authorization: Bearer $COOLIFY_API_TOKEN"
 ```
 
 ## Posture pédagogique
@@ -50,6 +70,7 @@ L'utilisateur est débutant. Agir en senior dev pédagogue : expliquer brièveme
 - Toujours utiliser les outils MCP Context7 (`resolve-library-id` puis `query-docs`) pour tout code utilisant une librairie externe
 - Préfixer `PYTHONIOENCODING=utf-8` pour toute commande Python sur Windows
 - Ne jamais commiter `.claude/settings.local.json` ni les fichiers `.env`
+- Deux instances Supabase coexistent : **cloud** (`SUPABASE_*`) et **self-hosted** (`COOLIFY_SUPABASE_*`) — ne pas les confondre
 
 ## Conventions
 
@@ -59,6 +80,7 @@ L'utilisateur est débutant. Agir en senior dev pédagogue : expliquer brièveme
 
 ## Fichiers de référence
 
-- `context.md` — Objectifs du projet
-- `GUIDE_CONFIG.md` — Guide complet de configuration Claude Code (settings, permissions, MCP, plugins, skills, commands, hooks, Specify)
+- `context.md` — Objectifs du projet et posture pédagogique
+- `GUIDE_CONFIG.md` — Guide complet de configuration Claude Code
 - `.env.example` — Variables d'environnement requises (template)
+- `.env` — Variables réelles avec tokens et mots de passe (gitignored)
